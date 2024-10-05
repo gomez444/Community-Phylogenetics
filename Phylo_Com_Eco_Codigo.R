@@ -297,11 +297,48 @@ nti<-ses.mntd(samp=comms,arbol.dist,null.model="taxa.labels")
 # poder calcular la estructura de los caracteres en la comunidad.
 
 # Calculemos primero una matriz de distancias de los caracteres
-# Podemos calcular uan similitud por caracter y entender cuales son los caracteres que
+# Podemos calcular una similitud por caracter y entender cuales son los caracteres que
 # más influyen
 
-caract.dist<-as.matrix(dist(caracteres))
+caract.mpd<-list()
 
+for(i in 1:ncol(caracteres)){
+  
+  ith.dist<-as.matrix(dist(caracteres[,i]))
+  colnames(ith.dist)<-rownames(ith.dist)<-rownames(caracteres)
+  ith.sesmpd<-ses.mpd(comms,ith.dist)
+  caract.mpd[[i]]<-ith.sesmpd
+}
 
+# Miremos los resultados e interpretemos.
 
+# Finalmente debemos calcular la señal filogenética que tiene una característica.
+# La señal filogenética es simplemente la influencia que tienen las relaciones evolutivas
+# sobre una característica. Según la teoría, se esepraría que especies más cercanamente
+# emparentadas se parecieran más que especies mas lejanamente emparentadas. Esto
+# quiere decir que la similitud en características entre dos especies es proporcional 
+# tiempo de divergencia entre estas dos especies. Un proceso natural a través del cual 
+# se puede estimar la evolución de los caracteres es denominado como movimiento browniano.
+# Simon Blomberg, propuso una medida para determinar si las caracteristicas observadas
+# evolucionan bajo un modelo de evolución browniana o mas o menos rapido que este modelo.
+# Esta medida esta basada en la relación entre varianza observada de un caracter y la
+# varianza esperada si los caracteres evolucionaran de forma neutral (browniana). K varia
+# entre 0 e infinito. Un K menor que uno indica una evolución rápida de los caracteres, mientras
+# que un K mayor que uno indica que los caracteres evolucionan más lentamente que 
+# lo esperado por azar, algo que se ha denominado como conservatismo filogenético
+# de nicho.
 
+# Veamos entonces como se ven los caracteres en la filogenia.
+traitA<-as.vector(caracteres[,1])
+names(traitA)<-rownames(caracteres)
+
+par(mfrow=c(2,1),mar=c(0,3,1,0))
+plot(1:length(traitA),traitA,pch=19,axes=FALSE
+     ,xlab="",ylab="")
+axis(2)
+par(mar=c(0,3,0,0))
+plot(arbol,direction="upwards")
+
+# Calculemos la señal filogenética
+Kcalc(traitA,arbol)
+phylosignal(traitA,arbol)
